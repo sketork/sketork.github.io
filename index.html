@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+   <style>
+      .container {
+      text-align:center;
+      }
+   </style>
+   <body>
+      <div class="container">
+         <p><img src="https://c.tenor.com/-sauCodHWLIAAAAC/rainbow-border.gif" alt="" /></p>
+         <script>
+            var example = ['&nbsp;', 'A', 'Ab', 'Abo', 'Abou', 'About', 'About m', 'About me'];
+            
+            textSequence(0);
+            function textSequence(i) {
+            
+                if (example.length > i) {
+                    setTimeout(function() {
+                        document.getElementById("sequence").innerHTML = example[i].fontsize(20);
+                        textSequence(++i);
+                    }, 400);
+            
+                } else if (example.length == i) {
+                    textSequence(0);
+                }
+            }
+            
+            var example2 = ['&nbsp;', 'S', 'So', 'Soc', 'Soci', 'Socia', 'Social', 'Social l', 'Social li', 'Social lin', 'Social link', 'Social links'];
+            
+            textSequence2(0);
+            function textSequence2(i) {
+            
+                if (example2.length > i) {
+                    setTimeout(function() {
+                        document.getElementById("sequence2").innerHTML = example2[i].fontsize(20);
+                        textSequence2(++i);
+                    }, 400);
+            
+                } else if (example2.length == i) {
+                    textSequence2(0);
+                }
+            }
+         </script>
+         <div id="sequence"></div>
+         <p>15 year old guy</p>
+         <p>My time zone: <iframe src="https://free.timeanddate.com/clock/i8ad6k0b/n133/tlpt/bo2/tt0" frameborder="0" width="270" height="20"></iframe></p>
+         <hr size="1" width="15%" color="grey">
+         <div id="sequence2"></div>
+         <p><a href="https://www.roblox.com/users/126688240/profile" target="_blank">Roblox</a></p>
+         <p><a href="https://steamcommunity.com/id/Sketork/" target="_blank">Steam</a></p>
+         <p><a href="https://open.spotify.com/user/8uw3zrz7dx9a9zw0msd5pwkfv" target="_blank">Spotify</a></p>
+         <p><img src="https://c.tenor.com/-sauCodHWLIAAAAC/rainbow-border.gif" alt="" /></p>
+         <h2>Why is this so empty?</h2>
+         <p>I made this mostly for fun and threw a bunch of random stuff at it.</p>
+         <p>More stuff will be added in the future when I'm bored!</p>
+         <p style="text-align: right;"><a href="https://www.youtube.com/watch?v=xvFZjo5PgG0" target="_blank">Secret</a></p>
+      </div>
+   </body>
+</html>
