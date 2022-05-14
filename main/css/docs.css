@@ -1,0 +1,47 @@
+ ulo {
+     list-style-type: none;
+     margin: 0;
+     padding: 0;
+     position: fixed;
+     top: 25%;
+width: 200px;
+     background-color: #484F6D;
+     font-size: 20px;
+}
+ lio a {
+     display: block;
+     color: white;
+     padding: 8px 16px;
+     text-decoration: none;
+}
+ .docs {
+  position: absolute;
+  left: 362px;
+  top: 14px;
+        width: 63vw;
+        height: 50vh;
+        padding-top: 10vh;
+        text-align: left;
+     font-size: 25px;
+color: #ededed;
+}
+code {
+    background-color: #3c425c;
+    display: block;
+    padding: 20px;
+text-align: left;
+font-size: 20px;
+overflow: scroll
+}
+
+@media screen and (max-width: 1100px) {
+ulo {
+    position: absolute;
+    left: -9999px;
+}
+ .docs {
+  left: 100px;
+  top: 90px;
+color: #ededed;
+}
+}
