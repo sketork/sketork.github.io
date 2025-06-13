@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+    canvas { border: 1px solid black; }
+    .controls { margin: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .control-group { display: flex; flex-direction: column; align-items: flex-start; font-family: Arial, sans-serif; font-size: 14px; }
+    label { margin-bottom: 4px; }
+    input[type=text], input[type=number] { width: 150px; padding: 4px; }
+    button { padding: 6px 12px; font-size: 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="controls">
+  <div class="control-group">
+    <label for="topLabel">Top Label</label>
+    <input type="text" id="topLabel" value="Put any text here!">
+  </div>
+  <div class="control-group">
+    <label for="bottomLabel">Bottom Label</label>
+    <input type="text" id="bottomLabel" value="More blank space here!">
+  </div>
+  <div class="control-group">
+    <label for="leftLabel">Left Label</label>
+    <input type="text" id="leftLabel" value="Left blank space">
+  </div>
+  <div class="control-group">
+    <label for="rightLabel">Right Label</label>
+    <input type="text" id="rightLabel" value="Right blank space">
+  </div>
+  <div class="control-group">
+    <label for="quadrantBL">Quadrant BL</label>
+    <input type="text" id="quadrantBL" value="Ordenada">
+  </div>
+  <div class="control-group">
+    <label for="quadrantTL">Quadrant TL</label>
+    <input type="text" id="quadrantTL" value="Complicada">
+  </div>
+  <div class="control-group">
+    <label for="quadrantBR">Quadrant BR</label>
+    <input type="text" id="quadrantBR" value="Divisional">
+  </div>
+  <div class="control-group">
+    <label for="quadrantTR">Quadrant TR</label>
+    <input type="text" id="quadrantTR" value="Matricial">
+  </div>
+  <div class="control-group">
+    <label for="centerLabel">Center Label</label>
+    <input type="text" id="centerLabel" value="3">
+  </div>
+  <div class="control-group">
+    <label for="pointX">Point X (1.0 - 5.0)</label>
+    <input type="number" id="pointX" min="1" max="5" step="0.1" value="4.0">
+  </div>
+  <div class="control-group">
+    <label for="pointY">Point Y (1.0 - 5.0)</label>
+    <input type="number" id="pointY" min="1" max="5" step="0.1" value="4.2">
+  </div>
+</div>
+<button id="downloadBtn">Copy Image</button>
+<script>
+// === EASY-TO-EDIT VARIABLES ===
+
+// Canvas and graph size
+let canvasW = 750;
+let canvasH = 600;
+let graphSize = 400;
+
+// Label variables
+let topLabel    = document.getElementById('topLabel').value;
+let bottomLabel = document.getElementById('bottomLabel').value;
+let leftLabel   = document.getElementById('leftLabel').value;
+let rightLabel  = document.getElementById('rightLabel').value;
+
+// Quadrant labels (inside graph)
+let quadrantBL = document.getElementById('quadrantBL').value;   // Bottom Left
+let quadrantTL = document.getElementById('quadrantTL').value; // Top Left
+let quadrantBR = document.getElementById('quadrantBR').value; // Bottom Right
+let quadrantTR = document.getElementById('quadrantTR').value;  // Top Right
+
+// Center label
+let centerLabel = document.getElementById('centerLabel').value;
+
+// Point coordinates (set between 1.0 and 5.0)
+let pointX = parseFloat(document.getElementById('pointX').value);
+let pointY = parseFloat(document.getElementById('pointY').value);
+
+// === END OF EASY-TO-EDIT VARIABLES ===
+
+let graphX, graphY;
+
+function setup() {
+  let canvas = createCanvas(canvasW, canvasH);
+  canvas.parent(document.body);
+  background(255);
+  graphX = (canvasW - graphSize) / 2;
+  graphY = (canvasH - graphSize) / 2;
+  drawAll();
+  noLoop();
+
+  // Add event listeners to inputs
+  let inputs = document.querySelectorAll('.controls input');
+  inputs.forEach(input => {
+    input.addEventListener('input', () => {
+      updateVariables();
+      redraw();
+    });
+  });
+
+  // Download button
+  document.getElementById('downloadBtn').addEventListener('click', async () => {
+    // Get the canvas element
+    const c = document.querySelector('canvas');
+    // Convert to blob
+    c.toBlob(async (blob) => {
+      try {
+        // Create a ClipboardItem and write to clipboard
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        alert('Canvas image copied to clipboard!');
+      } catch (err) {
+        alert('Failed to copy image to clipboard. Your browser may not support this feature.');
+        console.error(err);
+      }
+    }, 'image/png');
+  });
+}
+
+function updateVariables() {
+  topLabel    = document.getElementById('topLabel').value;
+  bottomLabel = document.getElementById('bottomLabel').value;
+  leftLabel   = document.getElementById('leftLabel').value;
+  rightLabel  = document.getElementById('rightLabel').value;
+  quadrantBL  = document.getElementById('quadrantBL').value;
+  quadrantTL  = document.getElementById('quadrantTL').value;
+  quadrantBR  = document.getElementById('quadrantBR').value;
+  quadrantTR  = document.getElementById('quadrantTR').value;
+  centerLabel = document.getElementById('centerLabel').value;
+  pointX      = parseFloat(document.getElementById('pointX').value);
+  pointY      = parseFloat(document.getElementById('pointY').value);
+}
+
+function drawAll() {
+  background(255);
+  drawAxes();
+  drawAxisArrows();
+  drawQuadrants();
+  drawLabels();
+  drawDashedGuides();
+  drawPoint();
+}
+
+function draw() {
+  drawAll();
+}
+
+function drawAxes() {
+  stroke(0);
+  strokeWeight(2);
+  // Vertical axis
+  line(graphX + graphSize/2, graphY, graphX + graphSize/2, graphY + graphSize);
+  // Horizontal axis
+  line(graphX, graphY + graphSize/2, graphX + graphSize, graphY + graphSize/2);
+}
+
+function drawQuadrants() {
+  let tickPadding = 30;
+  textAlign(CENTER, CENTER);
+  textSize(12);
+  stroke(150);
+  strokeWeight(1);
+
+  // Horizontal ticks and labels, skip 3
+  for (let i = 1; i <= 5; i++) {
+    if (i === 3) continue;
+    let x = map(i, 1, 5, graphX + tickPadding, graphX + graphSize - tickPadding);
+    line(x, graphY + graphSize/2 - 10, x, graphY + graphSize/2 + 10);
+    text(i, x, graphY + graphSize/2 + 25);
+  }
+  // Vertical ticks and labels, skip 3
+  for (let i = 1; i <= 5; i++) {
+    if (i === 3) continue;
+    let y = map(i, 1, 5, graphY + graphSize - tickPadding, graphY + tickPadding);
+    line(graphX + graphSize/2 - 10, y, graphX + graphSize/2 + 10, y);
+    text(i, graphX + graphSize/2 - 25, y);
+  }
+
+  // Draw big center label
+  textSize(14);
+  fill(0);
+  noStroke();
+  text(centerLabel, graphX + graphSize/1.9, graphY + graphSize/1.9);
+  textSize(12);
+  stroke(150);
+  fill(0);
+}
+
+function drawPoint() {
+  let tickPadding = 30;
+  stroke(56,188,124);
+  strokeWeight(8);
+  let x = map(pointX, 1, 5, graphX + tickPadding, graphX + graphSize - tickPadding);
+  let y = map(pointY, 1, 5, graphY + graphSize - tickPadding, graphY + tickPadding);
+  point(x, y);
+}
+
+function drawDashedGuides() {
+  let tickPadding = 30;
+  let x = map(pointX, 1, 5, graphX + tickPadding, graphX + graphSize - tickPadding);
+  let y = map(pointY, 1, 5, graphY + graphSize - tickPadding, graphY + tickPadding);
+
+  // Set dashed line style
+  push();
+  stroke(56, 188, 124, 180); // Match point color, semi-transparent
+  strokeWeight(2);
+  drawingContext.setLineDash([8, 8]);
+
+  // Vertical dashed line (from axis to point)
+  line(x, graphY + graphSize/2, x, y);
+
+  // Horizontal dashed line (from axis to point)
+  line(graphX + graphSize/2, y, x, y);
+
+  // Reset dash
+  drawingContext.setLineDash([]);
+  pop();
+}
+
+function drawLabels() {
+  textSize(14);
+  textAlign(CENTER, CENTER);
+  // Outside graph
+  text(topLabel,    canvasW/2, graphY - 30);
+  text(bottomLabel, canvasW/2, graphY + graphSize + 30);
+  text(leftLabel,   graphX - 90, canvasH/2);
+  text(rightLabel,  graphX + graphSize + 90, canvasH/2);
+  fill(0, 0, 0, 128)
+  // Quadrant labels (inside graph)
+  text(quadrantBL, graphX + graphSize/4,     graphY + 3*graphSize/4);
+  text(quadrantTL, graphX + graphSize/4,     graphY + graphSize/4);
+  text(quadrantBR, graphX + 3*graphSize/4,   graphY + 3*graphSize/4);
+  text(quadrantTR, graphX + 3*graphSize/4,   graphY + graphSize/4);
+}
+
+function drawAxisArrows() {
+  let arrowSize = 16;
+
+  // Y axis arrow (upwards)
+  push();
+  fill(0);
+  noStroke();
+  let xCenter = graphX + graphSize/2;
+  let yTop = graphY;
+  triangle(
+    xCenter, yTop - arrowSize,             // tip
+    xCenter - arrowSize/2, yTop,           // left base
+    xCenter + arrowSize/2, yTop            // right base
+  );
+  pop();
+
+  // X axis arrow (rightwards)
+  push();
+  fill(0);
+  noStroke();
+  let yCenter = graphY + graphSize/2;
+  let xRight = graphX + graphSize;
+  triangle(
+    xRight + arrowSize, yCenter,           // tip
+    xRight, yCenter - arrowSize/2,         // top base
+    xRight, yCenter + arrowSize/2          // bottom base
+  );
+  pop();
+}
+</script>
+</body>
+</html>
