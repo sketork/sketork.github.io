@@ -12,28 +12,30 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .header {
-            background: white;
+            background: #1a1a1a;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #2a2a2a;
             margin-bottom: 30px;
         }
 
         h1 {
-            color: #333;
+            color: #fff;
             margin-bottom: 20px;
+            font-size: 24px;
         }
 
         .input-group {
@@ -45,35 +47,39 @@
         input[type="number"] {
             flex: 1;
             padding: 12px;
-            border: 2px solid #ddd;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
             border-radius: 5px;
             font-size: 16px;
+            color: #fff;
             transition: border-color 0.3s;
         }
 
         input[type="number"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #4a9eff;
         }
 
         button {
             padding: 12px 30px;
-            background: #667eea;
+            background: #4a9eff;
             color: white;
             border: none;
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
             transition: background 0.3s;
+            font-weight: 600;
         }
 
         button:hover {
-            background: #5568d3;
+            background: #3a8eef;
         }
 
         button:disabled {
-            background: #ccc;
+            background: #2a2a2a;
             cursor: not-allowed;
+            color: #666;
         }
 
         .loading {
@@ -84,103 +90,166 @@
         }
 
         .error {
-            background: #ff6b6b;
-            color: white;
+            background: #2a1a1a;
+            border: 1px solid #ff4444;
+            color: #ff6b6b;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
 
         .success {
-            background: #51cf66;
-            color: white;
+            background: #1a2a1a;
+            border: 1px solid #44ff44;
+            color: #51cf66;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
 
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: contain;
-            background: #f8f9fa;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-
-        .product-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-            word-wrap: break-word;
-        }
-
-        .product-price {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 20px;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .robux-icon {
-            width: 20px;
-            height: 20px;
-        }
-
-        .product-status {
-            margin-top: 10px;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            display: inline-block;
-        }
-
-        .status-sale {
-            background: #51cf66;
-            color: white;
-        }
-
-        .status-not-sale {
-            background: #ff6b6b;
-            color: white;
-        }
-
         .info {
-            background: white;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
 
         .cors-note {
-            background: #fff3cd;
-            color: #856404;
+            background: #2a2520;
+            border: 1px solid #8b7355;
+            color: #d4af37;
             padding: 15px;
             border-radius: 5px;
             margin-top: 10px;
             font-size: 14px;
+        }
+
+        .products-table-container {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .products-table thead {
+            background: #0a0a0a;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .products-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .products-table th:first-child {
+            width: 40px;
+            text-align: center;
+        }
+
+        .products-table th:nth-child(2) {
+            min-width: 250px;
+        }
+
+        .products-table td {
+            padding: 16px;
+            border-bottom: 1px solid #2a2a2a;
+            vertical-align: middle;
+        }
+
+        .products-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .products-table tbody tr:hover {
+            background: #252525;
+        }
+
+        .checkbox-cell {
+            text-align: center;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #444;
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-image {
+            width: 50px;
+            height: 50px;
+            background: #2a2a2a;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .product-name {
+            font-size: 15px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .product-id {
+            font-size: 13px;
+            color: #888;
+            font-family: 'Courier New', monospace;
+        }
+
+        .price-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .robux-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-disabled {
+            background: #2a2a2a;
+            color: #888;
+        }
+
+        .status-enabled {
+            background: #1a3a1a;
+            color: #51cf66;
         }
     </style>
 </head>
@@ -204,7 +273,7 @@
 
         <div id="messageContainer"></div>
         <div id="infoContainer"></div>
-        <div id="productsContainer" class="products-grid"></div>
+        <div id="productsContainer"></div>
     </div>
 
     <script>
@@ -260,7 +329,6 @@
                 
                 messageContainer.innerHTML = '';
                 
-                // Fix: Check for lowercase 'developerProducts' instead of 'DeveloperProducts'
                 const products = productsData.developerProducts || productsData.DeveloperProducts;
                 
                 // Check if there are products
@@ -278,11 +346,8 @@
                     </div>
                 `;
 
-                // Display products
-                products.forEach(product => {
-                    const productCard = createProductCard(product);
-                    productsContainer.appendChild(productCard);
-                });
+                // Display products in table
+                displayProductsTable(products);
 
                 showMessage(`Successfully loaded ${products.length} developer products!`, 'success');
 
@@ -294,28 +359,78 @@
             }
         }
 
-        function createProductCard(product) {
-            const card = document.createElement('div');
-            card.className = 'product-card';
-
-            // Determine sale status
-            const statusClass = product.IsForSale ? 'status-sale' : 'status-not-sale';
-            const statusText = product.IsForSale ? 'On Sale' : 'Not For Sale';
-
-            card.innerHTML = `
-                <div class="product-name">${product.displayName || product.Name}</div>
-                <div class="product-price">
-                    <svg class="robux-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M16.923 12.038L20.055 6.9H24l-4.352 7.126L24 21.1h-3.945l-3.132-5.138h-2.417V21.1H11.03V2.9h7.762c3.485 0 5.68 2.024 5.68 5.204 0 2.435-1.462 4.22-3.549 4.934zM14.506 6.128v2.97h3.187c1.374 0 2.198-.73 2.198-1.485 0-.778-.824-1.485-2.198-1.485h-3.187z"/>
-                    </svg>
-                    ${product.PriceInRobux}
-                </div>
-                <span class="product-status ${statusClass}">${statusText}</span>
+        function displayProductsTable(products) {
+            const productsContainer = document.getElementById('productsContainer');
+            
+            let tableHTML = `
+                <div class="products-table-container">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="checkbox" id="selectAll"></th>
+                                <th>Developer Products</th>
+                                <th>Product ID</th>
+                                <th>Price</th>
+                                <th>Regional Pricing</th>
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
 
-            return card;
-        }
+            products.forEach(product => {
+                const productName = product.displayName || product.Name || 'Unnamed Product';
+                const productId = product.id || product.ProductId || 'N/A';
+                const price = product.PriceInRobux || product.priceInRobux || 0;
+                const isForSale = product.IsForSale !== undefined ? product.IsForSale : true;
+                const statusClass = isForSale ? 'status-enabled' : 'status-disabled';
+                const statusText = 'Disabled';
 
+                tableHTML += `
+                    <tr>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" class="checkbox">
+                        </td>
+                        <td>
+                            <div class="product-cell">
+                                <div class="product-image">No Image</div>
+                                <span class="product-name">${productName}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="product-id">${productId}</span>
+                        </td>
+                        <td>
+                            <div class="price-cell">
+                                <svg class="robux-icon" viewBox="0 0 26 27" fill="currentColor">
+                                    <path d="M23.402,5.573C25.009,6.501 26,8.217 26,10.073L26,17.929C26,19.786 25.009,21.501 23.402,22.429L16.597,26.358C14.99,27.286 13.009,27.286 11.402,26.358L4.597,22.429C2.99,21.501 2,19.786 2,17.929L2,10.073C2,8.217 2.99,6.501 4.597,5.573L11.402,1.645C13.009,0.717 14.99,0.717 16.597,1.645L23.402,5.573ZM12.313,3.428L5.686,7.254C4.642,7.857 4,8.97 4,10.176L4,17.827C4,19.032 4.642,20.146 5.686,20.749L12.313,24.574C13.357,25.177 14.642,25.177 15.686,24.574L22.313,20.749C23.357,20.146 24,19.032 24,17.827L24,10.176C24,8.97 23.357,7.857 22.313,7.254L15.686,3.428C14.642,2.825 13.357,2.825 12.313,3.428ZM15.385,5.566L20.614,8.584C21.471,9.079 22,9.994 22,10.985L22,17.022C22,18.012 21.471,18.927 20.614,19.422L15.385,22.441C14.528,22.936 13.471,22.936 12.614,22.441L7.385,19.422C6.528,18.927 6,18.012 6,17.022L6,10.985C6,9.994 6.528,9.079 7.385,8.584L12.614,5.566C13.471,5.071 14.528,5.071 15.385,5.566ZM11,17.003L17,17.003L17,11.003L11,11.003L11,17.003Z"/>
+                                </svg>
+                                ${price}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            productsContainer.innerHTML = tableHTML;
+
+            // Add select all functionality
+            const selectAllCheckbox = document.getElementById('selectAll');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.products-table tbody .checkbox');
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                });
+            }
+        }
 
         function showMessage(message, type) {
             const messageContainer = document.getElementById('messageContainer');
