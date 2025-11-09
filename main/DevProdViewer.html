@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Developer Products Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            padding: 20px;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #51cf66;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .robux-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .product-status {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .status-sale {
+            background: #51cf66;
+            color: white;
+        }
+
+        .status-not-sale {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .info {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .cors-note {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Roblox Developer Products Viewer</h1>
+            <div class="input-group">
+                <input 
+                    type="number" 
+                    id="placeIdInput" 
+                    placeholder="Enter Place ID (e.g., 1818)" 
+                    min="1"
+                >
+                <button id="fetchBtn" onclick="fetchProducts()">Fetch Products</button>
+            </div>
+            <div class="cors-note">
+                <strong>Note:</strong> If you encounter CORS errors, you may need to use a CORS proxy or run this through a backend server. Direct browser requests to Roblox APIs may be blocked.
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+        <div id="infoContainer"></div>
+        <div id="productsContainer" class="products-grid"></div>
+    </div>
+
+    <script>
+        async function fetchProducts() {
+            const placeId = document.getElementById('placeIdInput').value;
+            const messageContainer = document.getElementById('messageContainer');
+            const infoContainer = document.getElementById('infoContainer');
+            const productsContainer = document.getElementById('productsContainer');
+            const fetchBtn = document.getElementById('fetchBtn');
+
+            // Clear previous results
+            messageContainer.innerHTML = '';
+            infoContainer.innerHTML = '';
+            productsContainer.innerHTML = '';
+
+            // Validate input
+            if (!placeId || placeId <= 0) {
+                showMessage('Please enter a valid Place ID', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            fetchBtn.disabled = true;
+            showMessage('Fetching universe ID...', 'loading');
+
+            try {
+                // Step 1: Get Universe ID from Place ID
+                const universeResponse = await fetch(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`);
+                
+                if (!universeResponse.ok) {
+                    throw new Error(`Failed to fetch universe ID: ${universeResponse.status} ${universeResponse.statusText}`);
+                }
+
+                const universeData = await universeResponse.json();
+                const universeId = universeData.universeId;
+
+                if (!universeId) {
+                    throw new Error('Universe ID not found for this Place ID');
+                }
+
+                showMessage(`Universe ID found: ${universeId}. Fetching developer products...`, 'loading');
+
+                // Step 2: Get Developer Products using Universe ID
+                const productsResponse = await fetch(`https://apis.roblox.com/developer-products/v2/universes/${universeId}/developerproducts?limit=100`);
+                
+                if (!productsResponse.ok) {
+                    throw new Error(`Failed to fetch developer products: ${productsResponse.status} ${productsResponse.statusText}`);
+                }
+
+                const productsData = await productsResponse.json();
+                
+                messageContainer.innerHTML = '';
+                
+                // Check if there are products
+                if (!productsData.DeveloperProducts || productsData.DeveloperProducts.length === 0) {
+                    showMessage('No developer products found for this universe.', 'error');
+                    fetchBtn.disabled = false;
+                    return;
+                }
+
+                // Display info
+                infoContainer.innerHTML = `
+                    <div class="info">
+                        <strong>Universe ID:</strong> ${universeId} | 
+                        <strong>Total Products:</strong> ${productsData.DeveloperProducts.length}
+                    </div>
+                `;
+
+                // Display products
+                productsData.DeveloperProducts.forEach(product => {
+                    const productCard = createProductCard(product);
+                    productsContainer.appendChild(productCard);
+                });
+
+                showMessage(`Successfully loaded ${productsData.DeveloperProducts.length} developer products!`, 'success');
+
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage(`Error: ${error.message}. This might be due to CORS restrictions. Try using a CORS proxy or backend server.`, 'error');
+            } finally {
+                fetchBtn.disabled = false;
+            }
+        }
+
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+
+            // Get the image URL - Roblox image format
+            const imageUrl = product.displayIcon 
+                ? `https://assetdelivery.roblox.com/v1/asset/?id=${product.displayIcon}`
+                : 'https://via.placeholder.com/200x200?text=No+Image';
+
+            // Determine sale status
+            const statusClass = product.IsForSale ? 'status-sale' : 'status-not-sale';
+            const statusText = product.IsForSale ? 'On Sale' : 'Not For Sale';
+
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${product.displayName || product.Name}" class="product-image" 
+                     onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'">
+                <div class="product-name">${product.displayName || product.Name}</div>
+                <div class="product-price">
+                    <svg class="robux-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16.923 12.038L20.055 6.9H24l-4.352 7.126L24 21.1h-3.945l-3.132-5.138h-2.417V21.1H11.03V2.9h7.762c3.485 0 5.68 2.024 5.68 5.204 0 2.435-1.462 4.22-3.549 4.934zM14.506 6.128v2.97h3.187c1.374 0 2.198-.73 2.198-1.485 0-.778-.824-1.485-2.198-1.485h-3.187z"/>
+                    </svg>
+                    ${product.PriceInRobux}
+                </div>
+                <span class="product-status ${statusClass}">${statusText}</span>
+            `;
+
+            return card;
+        }
+
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        // Allow Enter key to trigger search
+        document.getElementById('placeIdInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                fetchProducts();
+            }
+        });
+    </script>
+</body>
+</html>
