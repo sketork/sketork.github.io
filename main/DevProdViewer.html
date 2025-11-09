@@ -132,6 +132,7 @@
             font-weight: bold;
             color: #333;
             margin-bottom: 10px;
+            word-wrap: break-word;
         }
 
         .product-price {
@@ -197,7 +198,7 @@
                 <button id="fetchBtn" onclick="fetchProducts()">Fetch Products</button>
             </div>
             <div class="cors-note">
-                <strong>Note:</strong> If you encounter CORS errors, you may need to use a CORS proxy or run this through a backend server. Direct browser requests to Roblox APIs may be blocked.
+                <strong>Note:</strong> If you encounter CORS errors, add "https://cors.x2u.in/?" before the API URLs in the code.
             </div>
         </div>
 
@@ -231,7 +232,7 @@
 
             try {
                 // Step 1: Get Universe ID from Place ID
-                const universeResponse = await fetch(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`);
+                const universeResponse = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`)}`);
                 
                 if (!universeResponse.ok) {
                     throw new Error(`Failed to fetch universe ID: ${universeResponse.status} ${universeResponse.statusText}`);
@@ -247,7 +248,7 @@
                 showMessage(`Universe ID found: ${universeId}. Fetching developer products...`, 'loading');
 
                 // Step 2: Get Developer Products using Universe ID
-                const productsResponse = await fetch(`https://apis.roblox.com/developer-products/v2/universes/${universeId}/developerproducts?limit=100`);
+                const productsResponse = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://apis.roblox.com/developer-products/v2/universes/${universeId}/developerproducts?limit=100`)}`);
                 
                 if (!productsResponse.ok) {
                     throw new Error(`Failed to fetch developer products: ${productsResponse.status} ${productsResponse.statusText}`);
@@ -255,10 +256,15 @@
 
                 const productsData = await productsResponse.json();
                 
+                console.log('API Response:', productsData); // Debug log
+                
                 messageContainer.innerHTML = '';
                 
+                // Fix: Check for lowercase 'developerProducts' instead of 'DeveloperProducts'
+                const products = productsData.developerProducts || productsData.DeveloperProducts;
+                
                 // Check if there are products
-                if (!productsData.DeveloperProducts || productsData.DeveloperProducts.length === 0) {
+                if (!products || products.length === 0) {
                     showMessage('No developer products found for this universe.', 'error');
                     fetchBtn.disabled = false;
                     return;
@@ -268,17 +274,17 @@
                 infoContainer.innerHTML = `
                     <div class="info">
                         <strong>Universe ID:</strong> ${universeId} | 
-                        <strong>Total Products:</strong> ${productsData.DeveloperProducts.length}
+                        <strong>Total Products:</strong> ${products.length}
                     </div>
                 `;
 
                 // Display products
-                productsData.DeveloperProducts.forEach(product => {
+                products.forEach(product => {
                     const productCard = createProductCard(product);
                     productsContainer.appendChild(productCard);
                 });
 
-                showMessage(`Successfully loaded ${productsData.DeveloperProducts.length} developer products!`, 'success');
+                showMessage(`Successfully loaded ${products.length} developer products!`, 'success');
 
             } catch (error) {
                 console.error('Error:', error);
@@ -292,18 +298,11 @@
             const card = document.createElement('div');
             card.className = 'product-card';
 
-            // Get the image URL - Roblox image format
-            const imageUrl = product.displayIcon 
-                ? `https://assetdelivery.roblox.com/v1/asset/?id=${product.displayIcon}`
-                : 'https://via.placeholder.com/200x200?text=No+Image';
-
             // Determine sale status
             const statusClass = product.IsForSale ? 'status-sale' : 'status-not-sale';
             const statusText = product.IsForSale ? 'On Sale' : 'Not For Sale';
 
             card.innerHTML = `
-                <img src="${imageUrl}" alt="${product.displayName || product.Name}" class="product-image" 
-                     onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'">
                 <div class="product-name">${product.displayName || product.Name}</div>
                 <div class="product-price">
                     <svg class="robux-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -316,6 +315,7 @@
 
             return card;
         }
+
 
         function showMessage(message, type) {
             const messageContainer = document.getElementById('messageContainer');
