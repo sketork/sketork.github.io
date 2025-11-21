@@ -206,6 +206,13 @@
             color: #666;
             flex-shrink: 0;
             text-align: center;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .product-name {
@@ -267,7 +274,7 @@
                 <button id="fetchBtn" onclick="fetchProducts()">Fetch Products</button>
             </div>
             <div class="cors-note">
-                <strong>Note:</strong> If you encounter CORS errors, add "https://cors.x2u.in/?" before the API URLs in the code.
+                <strong>Note:</strong> If you encounter CORS errors, the proxy is already configured in the code.
             </div>
         </div>
 
@@ -277,6 +284,52 @@
     </div>
 
     <script>
+        const CORS_PROXY = 'https://api.codetabs.com/v1/proxy?quest=';
+        const ERROR_IMAGE = 'https://tr.rbxcdn.com/180DAY-1104aaa4ec1b610e9b576ab9dc0b924a/420/420/Decal/Webp/noFilter';
+
+        async function getProductIcon(iconImageAssetId) {
+            if (!iconImageAssetId || iconImageAssetId === 0) {
+                return ERROR_IMAGE;
+            }
+
+            try {
+                const url = `https://thumbnails.roproxy.com/v1/assets?assetIds=${iconImageAssetId}&returnPolicy=PlaceHolder&size=420x420&format=png`;
+                const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`);
+                
+                if (!response.ok) {
+                    return ERROR_IMAGE;
+                }
+
+                const data = await response.json();
+                
+                if (data.data && data.data.length > 0 && data.data[0].imageUrl) {
+                    return data.data[0].imageUrl;
+                }
+                
+                return ERROR_IMAGE;
+            } catch (error) {
+                console.error('Error fetching icon:', error);
+                return ERROR_IMAGE;
+            }
+        }
+
+        async function getProductInfo(productId) {
+            try {
+                const url = `https://apis.roblox.com/developer-products/v1/developer-products/${productId}/details`;
+                const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`);
+                
+                if (!response.ok) {
+                    return null;
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching product info:', error);
+                return null;
+            }
+        }
+
         async function fetchProducts() {
             const placeId = document.getElementById('placeIdInput').value;
             const messageContainer = document.getElementById('messageContainer');
@@ -301,7 +354,7 @@
 
             try {
                 // Step 1: Get Universe ID from Place ID
-                const universeResponse = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`)}`);
+                const universeResponse = await fetch(`${CORS_PROXY}${encodeURIComponent(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`)}`);
                 
                 if (!universeResponse.ok) {
                     throw new Error(`Failed to fetch universe ID: ${universeResponse.status} ${universeResponse.statusText}`);
@@ -317,7 +370,7 @@
                 showMessage(`Universe ID found: ${universeId}. Fetching developer products...`, 'loading');
 
                 // Step 2: Get Developer Products using Universe ID
-                const productsResponse = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(`https://apis.roblox.com/developer-products/v2/universes/${universeId}/developerproducts?limit=100`)}`);
+                const productsResponse = await fetch(`${CORS_PROXY}${encodeURIComponent(`https://apis.roblox.com/developer-products/v2/universes/${universeId}/developerproducts?limit=100`)}`);
                 
                 if (!productsResponse.ok) {
                     throw new Error(`Failed to fetch developer products: ${productsResponse.status} ${productsResponse.statusText}`);
@@ -325,7 +378,7 @@
 
                 const productsData = await productsResponse.json();
                 
-                console.log('API Response:', productsData); // Debug log
+                console.log('API Response:', productsData);
                 
                 messageContainer.innerHTML = '';
                 
@@ -346,20 +399,21 @@
                     </div>
                 `;
 
-                // Display products in table
-                displayProductsTable(products);
+                // Fetch icons and display products
+                showMessage('Fetching product icons...', 'loading');
+                await displayProductsTable(products);
 
                 showMessage(`Successfully loaded ${products.length} developer products!`, 'success');
 
             } catch (error) {
                 console.error('Error:', error);
-                showMessage(`Error: ${error.message}. This might be due to CORS restrictions. Try using a CORS proxy or backend server.`, 'error');
+                showMessage(`Error: ${error.message}. This might be due to CORS restrictions or API issues.`, 'error');
             } finally {
                 fetchBtn.disabled = false;
             }
         }
 
-        function displayProductsTable(products) {
+        async function displayProductsTable(products) {
             const productsContainer = document.getElementById('productsContainer');
             
             let tableHTML = `
@@ -374,10 +428,11 @@
                                 <th>Regional Pricing</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="productsTableBody">
             `;
 
-            products.forEach(product => {
+            // Add placeholder rows first
+            for (let product of products) {
                 const productName = product.displayName || product.Name || 'Unnamed Product';
                 const productId = product.id || product.ProductId || 'N/A';
                 const price = product.PriceInRobux || product.priceInRobux || 0;
@@ -386,13 +441,13 @@
                 const statusText = 'Disabled';
 
                 tableHTML += `
-                    <tr>
+                    <tr data-product-id="${productId}">
                         <td class="checkbox-cell">
                             <input type="checkbox" class="checkbox">
                         </td>
                         <td>
                             <div class="product-cell">
-                                <div class="product-image">No Image</div>
+                                <div class="product-image" id="icon-${productId}">Loading...</div>
                                 <span class="product-name">${productName}</span>
                             </div>
                         </td>
@@ -412,7 +467,7 @@
                         </td>
                     </tr>
                 `;
-            });
+            }
 
             tableHTML += `
                         </tbody>
@@ -429,6 +484,36 @@
                     const checkboxes = document.querySelectorAll('.products-table tbody .checkbox');
                     checkboxes.forEach(cb => cb.checked = this.checked);
                 });
+            }
+
+            // Fetch icons asynchronously
+            for (let product of products) {
+                const productId = product.id || product.ProductId;
+                fetchAndDisplayIcon(productId);
+            }
+        }
+
+        async function fetchAndDisplayIcon(productId) {
+            const iconElement = document.getElementById(`icon-${productId}`);
+            
+            if (!iconElement) return;
+
+            try {
+                // Get detailed product info to retrieve IconImageAssetId
+                const productInfo = await getProductInfo(productId);
+                
+                let iconUrl = ERROR_IMAGE;
+                
+                if (productInfo && productInfo.IconImageAssetId) {
+                    iconUrl = await getProductIcon(productInfo.IconImageAssetId);
+                }
+
+                // Update the icon element
+                iconElement.innerHTML = `<img src="${iconUrl}" alt="Product Icon" onerror="this.src='${ERROR_IMAGE}'">`;
+                
+            } catch (error) {
+                console.error(`Error fetching icon for product ${productId}:`, error);
+                iconElement.innerHTML = `<img src="${ERROR_IMAGE}" alt="No Image">`;
             }
         }
 
