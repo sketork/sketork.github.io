@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Developer Products Viewer</title>
+    <title>Roblox Developer Products & Gamepasses Viewer</title>
     <style>
         * {
             margin: 0;
@@ -36,6 +36,19 @@
             color: #fff;
             margin-bottom: 20px;
             font-size: 24px;
+        }
+
+        h2 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-divider {
+            margin: 40px 0;
         }
 
         .input-group {
@@ -125,11 +138,18 @@
             font-size: 14px;
         }
 
-        .products-table-container {
+        .table-container {
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
             border-radius: 10px;
             overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .table-header {
+            background: #0a0a0a;
+            padding: 20px;
+            border-bottom: 1px solid #2a2a2a;
         }
 
         .products-table {
@@ -235,6 +255,12 @@
             font-weight: 600;
         }
 
+        .price-loading {
+            color: #888;
+            font-size: 14px;
+            font-weight: normal;
+        }
+
         .robux-icon {
             width: 18px;
             height: 18px;
@@ -258,12 +284,18 @@
             background: #1a3a1a;
             color: #51cf66;
         }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎮 Roblox Developer Products Viewer</h1>
+            <h1>🎮 Roblox Developer Products & Gamepasses Viewer</h1>
             <div class="input-group">
                 <input 
                     type="number" 
@@ -271,7 +303,7 @@
                     placeholder="Enter Place ID (e.g., 1818)" 
                     min="1"
                 >
-                <button id="fetchBtn" onclick="fetchProducts()">Fetch Products</button>
+                <button id="fetchBtn" onclick="fetchAll()">Fetch All</button>
             </div>
             <div class="cors-note">
                 <strong>Note:</strong> If you encounter CORS errors, the proxy is already configured in the code.
@@ -280,6 +312,8 @@
 
         <div id="messageContainer"></div>
         <div id="infoContainer"></div>
+        
+        <div id="gamepassesContainer"></div>
         <div id="productsContainer"></div>
     </div>
 
@@ -313,6 +347,28 @@
             }
         }
 
+        async function getGamepassIcon(gamepassId) {
+            try {
+                const url = `https://thumbnails.roproxy.com/v1/game-passes?gamePassIds=${gamepassId}&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false`;
+                const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`);
+                
+                if (!response.ok) {
+                    return ERROR_IMAGE;
+                }
+
+                const data = await response.json();
+                
+                if (data.data && data.data.length > 0 && data.data[0].imageUrl) {
+                    return data.data[0].imageUrl;
+                }
+                
+                return ERROR_IMAGE;
+            } catch (error) {
+                console.error('Error fetching gamepass icon:', error);
+                return ERROR_IMAGE;
+            }
+        }
+
         async function getProductInfo(productId) {
             try {
                 const url = `https://apis.roblox.com/developer-products/v1/developer-products/${productId}/details`;
@@ -330,16 +386,35 @@
             }
         }
 
-        async function fetchProducts() {
+        async function getGamepassProductInfo(gamepassId) {
+            try {
+                const url = `https://apis.roblox.com/game-passes/v1/game-passes/${gamepassId}/product-info`;
+                const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`);
+                
+                if (!response.ok) {
+                    return null;
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching gamepass product info:', error);
+                return null;
+            }
+        }
+
+        async function fetchAll() {
             const placeId = document.getElementById('placeIdInput').value;
             const messageContainer = document.getElementById('messageContainer');
             const infoContainer = document.getElementById('infoContainer');
+            const gamepassesContainer = document.getElementById('gamepassesContainer');
             const productsContainer = document.getElementById('productsContainer');
             const fetchBtn = document.getElementById('fetchBtn');
 
             // Clear previous results
             messageContainer.innerHTML = '';
             infoContainer.innerHTML = '';
+            gamepassesContainer.innerHTML = '';
             productsContainer.innerHTML = '';
 
             // Validate input
@@ -367,43 +442,57 @@
                     throw new Error('Universe ID not found for this Place ID');
                 }
 
-                showMessage(`Universe ID found: ${universeId}. Fetching developer products...`, 'loading');
+                showMessage(`Universe ID found: ${universeId}. Fetching data...`, 'loading');
 
-                // Step 2: Get Developer Products using Universe ID
-                const productsResponse = await fetch(`${CORS_PROXY}${encodeURIComponent(`https://apis.roblox.com/developer-products/v2/universes/${universeId}/developerproducts?limit=100`)}`);
-                
-                if (!productsResponse.ok) {
-                    throw new Error(`Failed to fetch developer products: ${productsResponse.status} ${productsResponse.statusText}`);
-                }
+                // Fetch both gamepasses and developer products in parallel
+                const [gamepassesData, productsData] = await Promise.all([
+                    fetchGamepasses(universeId),
+                    fetchDeveloperProducts(universeId)
+                ]);
 
-                const productsData = await productsResponse.json();
-                
-                console.log('API Response:', productsData);
-                
                 messageContainer.innerHTML = '';
-                
-                const products = productsData.developerProducts || productsData.DeveloperProducts;
-                
-                // Check if there are products
-                if (!products || products.length === 0) {
-                    showMessage('No developer products found for this universe.', 'error');
-                    fetchBtn.disabled = false;
-                    return;
-                }
 
                 // Display info
+                const totalGamepasses = gamepassesData ? gamepassesData.length : 0;
+                const totalProducts = productsData ? productsData.length : 0;
+                
                 infoContainer.innerHTML = `
                     <div class="info">
                         <strong>Universe ID:</strong> ${universeId} | 
-                        <strong>Total Products:</strong> ${products.length}
+                        <strong>Total Gamepasses:</strong> ${totalGamepasses} | 
+                        <strong>Total Developer Products:</strong> ${totalProducts}
                     </div>
                 `;
 
-                // Fetch icons and display products
-                showMessage('Fetching product icons...', 'loading');
-                await displayProductsTable(products);
+                // Display gamepasses
+                if (gamepassesData && gamepassesData.length > 0) {
+                    await displayGamepassesTable(gamepassesData);
+                } else {
+                    gamepassesContainer.innerHTML = `
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h2>🎫 Game Passes</h2>
+                            </div>
+                            <div class="empty-state">No game passes found for this universe.</div>
+                        </div>
+                    `;
+                }
 
-                showMessage(`Successfully loaded ${products.length} developer products!`, 'success');
+                // Display developer products
+                if (productsData && productsData.length > 0) {
+                    await displayProductsTable(productsData);
+                } else {
+                    productsContainer.innerHTML = `
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h2>💎 Developer Products</h2>
+                            </div>
+                            <div class="empty-state">No developer products found for this universe.</div>
+                        </div>
+                    `;
+                }
+
+                showMessage(`Successfully loaded ${totalGamepasses} gamepasses and ${totalProducts} developer products!`, 'success');
 
             } catch (error) {
                 console.error('Error:', error);
@@ -413,16 +502,131 @@
             }
         }
 
+        async function fetchGamepasses(universeId) {
+            try {
+                const url = `https://apis.roblox.com/game-passes/v1/universes/${universeId}/game-passes`;
+                const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`);
+                
+                if (!response.ok) {
+                    console.error('Failed to fetch gamepasses:', response.status);
+                    return null;
+                }
+
+                const data = await response.json();
+                return data.gamePasses || data.GamePasses || [];
+            } catch (error) {
+                console.error('Error fetching gamepasses:', error);
+                return null;
+            }
+        }
+
+        async function fetchDeveloperProducts(universeId) {
+            try {
+                const url = `https://apis.roblox.com/developer-products/v2/universes/${universeId}/developerproducts?limit=100`;
+                const response = await fetch(`${CORS_PROXY}${encodeURIComponent(url)}`);
+                
+                if (!response.ok) {
+                    console.error('Failed to fetch developer products:', response.status);
+                    return null;
+                }
+
+                const data = await response.json();
+                return data.developerProducts || data.DeveloperProducts || [];
+            } catch (error) {
+                console.error('Error fetching developer products:', error);
+                return null;
+            }
+        }
+
+        async function displayGamepassesTable(gamepasses) {
+            const gamepassesContainer = document.getElementById('gamepassesContainer');
+            
+            let tableHTML = `
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>🎫 Game Passes</h2>
+                    </div>
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="checkbox" id="selectAllGamepasses"></th>
+                                <th>Game Pass</th>
+                                <th>Pass ID</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gamepassesTableBody">
+            `;
+
+            // Add placeholder rows first with "Loading..." for prices
+            for (let gamepass of gamepasses) {
+                const passName = gamepass.name || gamepass.Name || 'Unnamed Game Pass';
+                const passId = gamepass.id || gamepass.Id || 'N/A';
+                
+                tableHTML += `
+                    <tr data-gamepass-id="${passId}">
+                        <td class="checkbox-cell">
+                            <input type="checkbox" class="checkbox">
+                        </td>
+                        <td>
+                            <div class="product-cell">
+                                <div class="product-image" id="gamepass-icon-${passId}">Loading...</div>
+                                <span class="product-name">${passName}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="product-id">${passId}</span>
+                        </td>
+                        <td>
+                            <div class="price-cell" id="gamepass-price-${passId}">
+                                <span class="price-loading">Loading...</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge" id="gamepass-status-${passId}">Loading...</span>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            gamepassesContainer.innerHTML = tableHTML;
+
+            // Add select all functionality
+            const selectAllCheckbox = document.getElementById('selectAllGamepasses');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('#gamepassesTableBody .checkbox');
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                });
+            }
+
+            // Fetch icons and prices asynchronously
+            for (let gamepass of gamepasses) {
+                const passId = gamepass.id || gamepass.Id;
+                fetchAndDisplayGamepassDetails(passId);
+            }
+        }
+
         async function displayProductsTable(products) {
             const productsContainer = document.getElementById('productsContainer');
             
             let tableHTML = `
-                <div class="products-table-container">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>💎 Developer Products</h2>
+                    </div>
                     <table class="products-table">
                         <thead>
                             <tr>
-                                <th><input type="checkbox" class="checkbox" id="selectAll"></th>
-                                <th>Developer Products</th>
+                                <th><input type="checkbox" class="checkbox" id="selectAllProducts"></th>
+                                <th>Developer Product</th>
                                 <th>Product ID</th>
                                 <th>Price</th>
                                 <th>Regional Pricing</th>
@@ -478,10 +682,10 @@
             productsContainer.innerHTML = tableHTML;
 
             // Add select all functionality
-            const selectAllCheckbox = document.getElementById('selectAll');
+            const selectAllCheckbox = document.getElementById('selectAllProducts');
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
-                    const checkboxes = document.querySelectorAll('.products-table tbody .checkbox');
+                    const checkboxes = document.querySelectorAll('#productsTableBody .checkbox');
                     checkboxes.forEach(cb => cb.checked = this.checked);
                 });
             }
@@ -490,6 +694,66 @@
             for (let product of products) {
                 const productId = product.id || product.ProductId;
                 fetchAndDisplayIcon(productId);
+            }
+        }
+
+        async function fetchAndDisplayGamepassDetails(gamepassId) {
+            const iconElement = document.getElementById(`gamepass-icon-${gamepassId}`);
+            const priceElement = document.getElementById(`gamepass-price-${gamepassId}`);
+            const statusElement = document.getElementById(`gamepass-status-${gamepassId}`);
+            
+            if (!iconElement || !priceElement || !statusElement) return;
+
+            try {
+                // Fetch both icon and product info in parallel
+                const [iconUrl, productInfo] = await Promise.all([
+                    getGamepassIcon(gamepassId),
+                    getGamepassProductInfo(gamepassId)
+                ]);
+
+                // Update icon
+                iconElement.innerHTML = `<img src="${iconUrl}" alt="Gamepass Icon" onerror="this.src='${ERROR_IMAGE}'">`;
+                
+                // Update price and status
+                if (productInfo) {
+                    // Check for price in priceInformation struct (new format)
+                    let price = 0;
+                    let isForSale = false;
+                    
+                    if (productInfo.priceInformation && productInfo.priceInformation.defaultPriceInRobux !== null) {
+                        price = productInfo.priceInformation.defaultPriceInRobux;
+                        isForSale = true;
+                    } else if (productInfo.PriceInRobux !== undefined) {
+                        // Fallback to old format
+                        price = productInfo.PriceInRobux;
+                        isForSale = price > 0;
+                    }
+
+                    // Update price display
+                    priceElement.innerHTML = `
+                        <svg class="robux-icon" viewBox="0 0 26 27" fill="currentColor">
+                            <path d="M23.402,5.573C25.009,6.501 26,8.217 26,10.073L26,17.929C26,19.786 25.009,21.501 23.402,22.429L16.597,26.358C14.99,27.286 13.009,27.286 11.402,26.358L4.597,22.429C2.99,21.501 2,19.786 2,17.929L2,10.073C2,8.217 2.99,6.501 4.597,5.573L11.402,1.645C13.009,0.717 14.99,0.717 16.597,1.645L23.402,5.573ZM12.313,3.428L5.686,7.254C4.642,7.857 4,8.97 4,10.176L4,17.827C4,19.032 4.642,20.146 5.686,20.749L12.313,24.574C13.357,25.177 14.642,25.177 15.686,24.574L22.313,20.749C23.357,20.146 24,19.032 24,17.827L24,10.176C24,8.97 23.357,7.857 22.313,7.254L15.686,3.428C14.642,2.825 13.357,2.825 12.313,3.428ZM15.385,5.566L20.614,8.584C21.471,9.079 22,9.994 22,10.985L22,17.022C22,18.012 21.471,18.927 20.614,19.422L15.385,22.441C14.528,22.936 13.471,22.936 12.614,22.441L7.385,19.422C6.528,18.927 6,18.012 6,17.022L6,10.985C6,9.994 6.528,9.079 7.385,8.584L12.614,5.566C13.471,5.071 14.528,5.071 15.385,5.566ZM11,17.003L17,17.003L17,11.003L11,11.003L11,17.003Z"/>
+                        </svg>
+                        ${price}
+                    `;
+
+                    // Update status
+                    const statusClass = isForSale ? 'status-enabled' : 'status-disabled';
+                    const statusText = isForSale ? 'On Sale' : 'Not For Sale';
+                    statusElement.className = `status-badge ${statusClass}`;
+                    statusElement.textContent = statusText;
+                } else {
+                    priceElement.innerHTML = '<span class="price-loading">N/A</span>';
+                    statusElement.className = 'status-badge status-disabled';
+                    statusElement.textContent = 'Unknown';
+                }
+                
+            } catch (error) {
+                console.error(`Error fetching details for gamepass ${gamepassId}:`, error);
+                iconElement.innerHTML = `<img src="${ERROR_IMAGE}" alt="No Image">`;
+                priceElement.innerHTML = '<span class="price-loading">Error</span>';
+                statusElement.className = 'status-badge status-disabled';
+                statusElement.textContent = 'Error';
             }
         }
 
@@ -525,7 +789,7 @@
         // Allow Enter key to trigger search
         document.getElementById('placeIdInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                fetchProducts();
+                fetchAll();
             }
         });
     </script>
