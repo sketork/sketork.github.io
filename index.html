@@ -1,22 +1,373 @@
 <!DOCTYPE html>
-<html>
-   <style>             
-      body {
-      background-color: black;      
-      font-family: Raleway, sans-serif;                   
-      }
-      .er {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 1.6rem;
-      text-align: center;;
-      }
-   </style>
-   <body>
-      <div class="er">
-         <p style="color:white">Nothing to see here! Yet..</p>
-      </div>
-   </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sketork</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #8B5CF6; 
+            --card-bg: #5a3ba3;  
+            --text-main: #ffffff;
+            --text-sub: #bba6e6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- Full Page Hero Section --- */
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* Added for absolute positioning of arrow */
+        }
+
+        .logo {
+            width: 80%; 
+            max-width: 600px; 
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            z-index: 10; /* Ensures logo stays on top of any potential background effects */
+        }
+
+        .logo:hover {
+            transform: scale(1.05) rotate(-2deg);
+        }
+
+        .down-arrow {
+            position: absolute;
+            bottom: 30px;
+            animation: bounce 2s infinite ease-in-out;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* --- Content Section --- */
+        .content-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 20px 80px 20px;
+            min-height: 100vh;
+            justify-content: center;
+            position: relative; /* Crucial for absolute positioning the glow circles behind the content */
+            overflow: hidden; /* Prevents blur from creating horizontal scrollbars */
+        }
+
+        /* --- Glow / Shine Effects --- */
+        .glow {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+            border-radius: 50%;
+            filter: blur(100px); /* Creates the soft glow effect */
+            z-index: 0; /* Places them behind the cards and text */
+            pointer-events: none; /* Ensures you can click through the glow to the cards */
+        }
+
+        /* Shine behind Card 1 */
+        .glow-1 {
+            width: 400px;
+            height: 400px;
+            top: 10%;
+            left: 10%;
+        }
+
+        /* Shine behind Card 2 */
+        .glow-2 {
+            width: 400px;
+            height: 400px;
+            top: 20%;
+            right: 10%;
+        }
+
+        /* Shine behind Contact Section */
+        .glow-3 {
+            width: 500px;
+            height: 500px;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%); /* Centers the glow horizontally */
+        }
+
+        /* --- Cards Section --- */
+        .cards-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 80px;
+            width: 100%;
+            max-width: 1000px;
+            z-index: 1; /* Places cards above the glow */
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.1s ease;
+            cursor: pointer;
+            /* Added a subtle border to help them pop against the glow */
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+
+        .card-image-wrapper {
+            width: 100%;
+            aspect-ratio: 16 / 9; 
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fca5a5; 
+            position: relative;
+        }
+
+        .card-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to bottom, #ffb6b6, #d99a9a);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .card-info {
+            padding: 16px 8px 8px 8px;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        /* --- Footer / Contact Section --- */
+        .contact-section {
+            text-align: center;
+            position: relative;
+            z-index: 1; /* Places contact text above the glow */
+        }
+
+        .contact-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .discord-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .discord-handle {
+            font-size: 3.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .discord-handle:hover {
+            color: #ddd;
+        }
+
+        .discord-handle::after {
+            content: "Click to copy!";
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .discord-handle.copied::after {
+            content: "Copied!";
+            background: #22c55e;
+        }
+
+        .discord-wrapper:hover .discord-handle::after {
+            opacity: 1;
+        }
+
+        .curved-arrow {
+            position: absolute;
+            right: -120px;
+            top: -25px;
+            width: 95px;
+            height: 85px;
+            pointer-events: none;
+        }
+
+        @media (max-width: 500px) {
+            .curved-arrow {
+                display: none; 
+            }
+            .discord-handle {
+                font-size: 2.5rem;
+            }
+            /* Adjust glow sizes for mobile */
+            .glow-1, .glow-2 {
+                width: 300px;
+                height: 300px;
+            }
+            .glow-3 {
+                width: 400px;
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Full Page Hero Section -->
+    <section class="hero-section">
+        <img src="https://i.ibb.co/TDv9M88b/sketorklogo.png" alt="Sketork Logo" class="logo">
+
+        <div class="down-arrow">
+            <svg width="50" height="50" viewBox="0 0 75 107" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M28.6579 81.006C28.6579 78.7006 28.6579 76.1646 28.6579 73.8591C28.9883 53.5711 29.6491 33.0526 29.9795 12.7646C29.9795 10.4591 29.9795 8.38422 30.3099 6.07877C30.6403 3.08168 31.6315 -0.607047 37.2483 0.0845887C39.5611 0.315134 42.2044 3.77331 42.5348 5.84822C43.8564 22.9086 44.8476 39.7384 45.8388 56.7987C46.1692 60.718 45.8388 64.6373 48.8124 68.7871C52.7772 64.1762 56.0812 59.3347 60.3764 54.9544C62.3588 52.8795 67.3148 50.574 70.2884 51.0351C76.2357 51.9573 75.5749 56.5682 73.5924 59.3347C65.002 73.1675 56.4116 87.2307 46.1692 100.602C39.5612 109.133 29.6491 109.133 23.0411 100.602C14.1203 89.3056 7.51226 77.0867 0.243443 65.3289C-0.74776 63.9456 1.56504 61.6402 2.22584 59.7958C4.86905 60.4875 8.83387 60.4875 10.1555 61.8707C13.4595 64.6373 15.4419 68.326 18.0851 71.5537C20.7283 75.0118 23.3715 78.47 26.0147 81.6977C26.6755 81.2366 27.6667 81.006 28.6579 81.006Z" fill="white"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Scrollable Content Section -->
+    <section class="content-section">
+        
+        <!-- Background Glow Effects -->
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="glow glow-3"></div>
+
+        <div class="cards-container">
+            <!-- Card 1 -->
+            <div class="card" id="card1">
+                <div class="card-image-wrapper">
+                    <img class="card-image-placeholder" src="https://tr.rbxcdn.com/180DAY-dad1ff6faac97d2788a2806e815a6246/768/432/Image/Webp/noFilter">
+                </div>
+                <div class="card-info">
+                    <h2 class="card-title">Rob the brainrot</h2>
+                    <p class="card-subtitle">Peak: 10K</p>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card" id="card2">
+                <div class="card-image-wrapper">
+                    <img class="card-image-placeholder" src="https://tr.rbxcdn.com/180DAY-b8393359a86ab8a0633cf685bcc18f75/768/432/Image/Webp/noFilter">
+                </div>
+                <div class="card-info">
+                    <h2 class="card-title">RAT ATTACK 🧀</h2>
+                    <p class="card-subtitle">Peak: 3K</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="contact-section">
+            <p class="contact-text">Contact me on Discord :)</p>
+            <div class="discord-wrapper">
+                <h2 class="discord-handle" id="discord-handle">Sketork</h2>
+                
+                <!-- Curved arrow SVG -->
+                <svg class="curved-arrow" width="224" height="152" viewBox="0 0 224 152" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M124.498 -3.05538e-05C162.583 7.76417 195.735 24.5363 218.731 57.427C226.72 69.0208 225.346 80.9795 215.275 91.9391C203.729 104.678 188.735 112.022 172.205 115.037C153.237 118.62 133.577 120.852 114.306 121.181C94.494 121.785 74.5167 119.406 54.5529 118.383C49.9342 118.022 45.0454 117.8 40.1701 118.934C56.8085 126.777 73.0384 134.488 90.5984 139.47C95.3623 140.78 101.477 141.398 102.243 150.213C98.4485 150.794 94.9373 152.594 91.8075 151.811C79.5651 149.218 67.0527 146.764 55.0669 142.676C40.7683 138.067 26.463 132.781 12.5594 126.947C1.38389 122.443 -3.4545 113.669 2.68996 103.698C9.90126 91.8171 19.8474 81.9447 29.1081 71.4004C30.5834 69.6211 34.3851 69.7189 37.3629 68.8747C44.9768 83.73 28.8824 89.5916 26.6916 101.287C70.3937 100.715 113.762 107.476 157.403 100.797C170.955 98.6255 184.224 95.2353 195.686 87.6553C210.652 77.597 211.672 70.9356 200.942 56.6544C184.846 35.2327 162.462 22.8324 138.601 12.2115C133.284 9.82123 128.091 6.34386 122.635 3.68355C123.307 2.99815 123.972 1.63409 124.498 -3.05538e-05Z" fill="white"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Dynamic 3D tilt effect for the cards
+        const cards = document.querySelectorAll('.card');
+        
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -5;
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            });
+        });
+
+        // Copy Discord Handle to Clipboard
+        const discordHandle = document.getElementById('discord-handle');
+        
+        discordHandle.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(discordHandle.innerText);
+                discordHandle.classList.add('copied');
+                
+                setTimeout(() => {
+                    discordHandle.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        });
+
+        // Make the down arrow scroll smoothly to the content section
+        const downArrow = document.querySelector('.down-arrow');
+        const contentSection = document.querySelector('.content-section');
+        
+        downArrow.addEventListener('click', () => {
+            contentSection.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
 </html>
